@@ -1,0 +1,43 @@
+name: "check-version"
+description: "Checks, if the current project-version in the pyproject.toml is already existing as a tag. Fails, if that tag already exists"
+
+inputs:
+  token:
+    description: "Github token to make authed request to GH API"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Get Latest Release
+      id: current
+      uses: ctrlaltdev/get-releases-action@v1.1.0
+      with:
+        repo: ${{ github.repository }}
+        token: ${{ inputs.token }}
+        limit: 1 
+
+    - name: Setup poetry
+      id: setup-poetry
+      uses: henningwoehr/action-poetry-setup@v1
+
+    - name: Set env
+      run: |
+        echo "RELEASE_OLD=$(echo $json_var | jq '.[].tag_name' | tr -d '"')" >> $GITHUB_ENV
+        echo "POETRY_NEW=$(poetry version --short)" >> $GITHUB_ENV
+      env:
+        json_var: ${{ steps.current.outputs.releases }}
+      shell: bash
+
+    - name: validate version
+      run: |
+        python -c """
+        import sys
+        from packaging import version
+        if version.parse(sys.argv[1]) >= version.parse(sys.argv[2]):
+            raise ValueError('Poetry Version is not larger than the last release')
+        """ $RELEASE_OLD $POETRY_NEW
+      shell: bash
