@@ -14,7 +14,7 @@ runs:
 
     - name: Get Latest Release
       id: current
-      uses: ctrlaltdev/get-releases-action@v1.1.0
+      uses: ctrlaltdev/get-releases-action@v1.2.0
       with:
         repo: ${{ github.repository }}
         token: ${{ inputs.token }}
