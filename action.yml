@@ -12,28 +12,29 @@ runs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Get Latest Release
-      id: current
-      uses: ctrlaltdev/get-releases-action@v1.2.0
-      with:
-        repo: ${{ github.repository }}
-        token: ${{ inputs.token }}
-        limit: 1 
-
     - name: Setup poetry
       id: setup-poetry
       uses: henningwoehr/action-poetry-setup@v1
 
-    - name: Set env
-      run: |
-        echo "RELEASE_OLD=$(echo $json_var | jq '.[].tag_name' | tr -d '"')" >> $GITHUB_ENV
-        echo "POETRY_NEW=$(poetry version --short)" >> $GITHUB_ENV
-      env:
-        json_var: ${{ steps.current.outputs.releases }}
-      shell: bash
+    # - name: Set env
+    #   run: |
+    #     RELEASE_OLD=$(curl -sL https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest --header "Authorization: Bearer ${{ inputs.token }}" | jq -r ".tag_name")
+    #     if [[ $RELEASE_OLD -eq null ]]
+    #     then
+    #       RELEASE_OLD=$(echo "0.0.0")
+    #     fi
+    #     echo "$RELEASE_OLD" >> $GITHUB_ENV
+    #     echo "POETRY_NEW=$(poetry version --short)" >> $GITHUB_ENV
+    #   shell: bash
 
     - name: validate version
       run: |
+        RELEASE_OLD=$(curl -sL https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest --header "Authorization: Bearer ${{ inputs.token }}" | jq -r ".tag_name")
+        if [[ $RELEASE_OLD -eq null ]]
+        then
+          RELEASE_OLD=$(echo "0.0.0")
+        fi
+        POETRY_NEW=$(poetry version --short)
         python -c """
         import sys
         from packaging import version
