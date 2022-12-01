@@ -5,6 +5,14 @@ inputs:
   token:
     description: "Github token to make authed request to GH API"
     required: true
+  poetry-version:
+    description: "Version of poetry to install"
+    required: false
+    default: "1.1.14"
+  python-version:
+    description: "Version of python to install"
+    required: false
+    default: "3.10"
 
 runs:
   using: composite
@@ -15,17 +23,9 @@ runs:
     - name: Setup poetry
       id: setup-poetry
       uses: henningwoehr/action-poetry-setup@v1
-
-    # - name: Set env
-    #   run: |
-    #     RELEASE_OLD=$(curl -sL https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest --header "Authorization: Bearer ${{ inputs.token }}" | jq -r ".tag_name")
-    #     if [[ $RELEASE_OLD -eq null ]]
-    #     then
-    #       RELEASE_OLD=$(echo "0.0.0")
-    #     fi
-    #     echo "$RELEASE_OLD" >> $GITHUB_ENV
-    #     echo "POETRY_NEW=$(poetry version --short)" >> $GITHUB_ENV
-    #   shell: bash
+      with:
+        python-version: ${{ inputs.python-version }}
+        poetry-version: ${{ inputs.poetry-version }}
 
     - name: validate version
       run: |
